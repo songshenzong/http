@@ -7,7 +7,6 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\TransferStats;
 use Songshenzong\Support\Arrays;
-use Songshenzong\Http\Exception\HttpError;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -48,18 +47,10 @@ class Http
 
         $config['http_errors'] = false;
 
-        try {
-            return self::client()->send(
-                $request,
-                $config
-            );
-        } catch (GuzzleException $e) {
-            throw new HttpError(
-                $e->getMessage(),
-                $e->getCode(),
-                $e
-            );
-        }
+        return self::client()->send(
+            $request,
+            $config
+        );
     }
 
     /**
@@ -178,55 +169,5 @@ class Http
         return isset($headers[$key][0]) ? $headers[$key][0] : $default;
     }
 
-    /**
-     * @param array $runtime
-     * @param int   $retryTimes
-     * @param float $now
-     *
-     * @return bool
-     */
-    public static function allowRetry(array $runtime, $retryTimes, $now)
-    {
-        if (empty($runtime) || !isset($runtime['max-attempts'])) {
-            return false;
-        }
-        $maxAttempts = $runtime['max-attempts'];
-        $retry       = empty($maxAttempts) ? 0 : intval($maxAttempts);
-        return $retry >= $retryTimes;
-    }
 
-    /**
-     * @param array $runtime
-     * @param int   $retryTimes
-     *
-     * @return int
-     */
-    public static function getBackoffTime(array $runtime, $retryTimes)
-    {
-        $backOffTime = 0;
-        $policy      = isset($runtime["policy"]) ? $runtime["policy"] : "";
-
-        if (empty($policy) || $policy == "no") {
-            return $backOffTime;
-        }
-
-        $period = isset($runtime["period"]) ? $runtime["period"] : "";
-        if (null !== $period && "" !== $period) {
-            $backOffTime = intval($period);
-            if ($backOffTime <= 0) {
-                return $retryTimes;
-            }
-        }
-        return $backOffTime;
-    }
-
-    public static function sleep($time)
-    {
-        sleep($time);
-    }
-
-    public static function isRetryable($e)
-    {
-        return $e instanceof HttpError;
-    }
 }
