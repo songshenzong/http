@@ -44,7 +44,7 @@ class Request extends PsrRequest
 
     public $method;
 
-    public function __construct($method = "GET", $uri = "", array $headers = [], $body = null, $version = '1.1')
+    public function __construct($method = 'GET', $uri = '', array $headers = [], $body = null, $version = '1.1')
     {
         parent::__construct($method, $uri, $headers, $body, $version);
         $this->method = $method;
